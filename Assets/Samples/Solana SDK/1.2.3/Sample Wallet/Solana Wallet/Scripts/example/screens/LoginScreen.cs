@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Solana.Unity.Wallet;
+using UnityEngine.SceneManagement;
 
 // ReSharper disable once CheckNamespace
 
@@ -100,6 +101,11 @@ namespace Solana.Unity.SDK.Example
         {
             if (account != null)
             {
+                //GameJam Hack:
+                SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+                Debug.Log("Logging in with wallet address: " + account.PublicKey.Key);
+                return;
+                
                 dropdownRpcCluster.interactable = false;
                 manager.ShowScreen(this, "wallet_screen");
                 messageTxt.gameObject.SetActive(false);

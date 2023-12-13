@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Solana.Unity.SDK;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -17,6 +18,7 @@ namespace UIToolkitDemo
 
         const string k_GoldCount = "options-bar__gold-count";
         const string k_GemCount = "options-bar__gem-count";
+        const string k_WalletAddr = "options-bar__wallet-address";
 
         const float k_LerpTime = 0.6f;
 
@@ -25,6 +27,7 @@ namespace UIToolkitDemo
         VisualElement m_ShopGoldButton;
         Label m_GoldLabel;
         Label m_GemLabel;
+        Label m_WalletLabel;
 
         private void OnEnable()
         {
@@ -50,6 +53,7 @@ namespace UIToolkitDemo
 
             m_GoldLabel = m_Root.Q<Label>(k_GoldCount);
             m_GemLabel = m_Root.Q<Label>(k_GemCount);
+            m_WalletLabel = m_Root.Q<Label>(k_WalletAddr);
         }
 
         // set up button click events
@@ -93,6 +97,12 @@ namespace UIToolkitDemo
 
         void OnFundsUpdated(GameData gameData)
         {
+            //GameJam hack:
+            m_WalletLabel.text =
+                Web3.Account.PublicKey.Key.Substring(0, 3) +
+                "..." +
+                Web3.Account.PublicKey.Key.Substring(Web3.Account.PublicKey.Key.Length-3);
+            
             SetGold(gameData.gold);
             SetGems(gameData.gems);
         }
