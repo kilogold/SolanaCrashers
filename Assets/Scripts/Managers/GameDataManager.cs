@@ -37,6 +37,8 @@ namespace UIToolkitDemo
             CharScreenController.LevelPotionUsed += OnLevelPotionUsed;
 
             SettingsScreen.ResetPlayerFunds += OnResetFunds;
+            
+            FungiblesListener.FungiblesUpdated += OnFundsUpdatedExternally;
         }
 
         void OnDisable()
@@ -52,6 +54,9 @@ namespace UIToolkitDemo
             CharScreenController.LevelPotionUsed -= OnLevelPotionUsed;
 
             SettingsScreen.ResetPlayerFunds -= OnResetFunds;
+            
+            FungiblesListener.FungiblesUpdated -= OnFundsUpdatedExternally;
+
         }
 
         void Awake()
@@ -304,6 +309,11 @@ namespace UIToolkitDemo
             // notify the CharScreen to enable or disable the LevelUpButton VFX
             LevelUpButtonEnabled?.Invoke(CanLevelUp(charData));
         }
-
+        
+        void OnFundsUpdatedExternally(FungiblesListener.Fungibles obj)
+        {
+            m_GameData.gold = obj.gameCurrency;
+            UpdateFunds();
+        }
     }
 }

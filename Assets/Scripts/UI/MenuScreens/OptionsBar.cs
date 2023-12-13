@@ -97,14 +97,15 @@ namespace UIToolkitDemo
 
         void OnFundsUpdated(GameData gameData)
         {
+            SetGold(gameData.gold);
+            SetGems(gameData.gems);
+            
             //GameJam hack:
             m_WalletLabel.text =
                 Web3.Account.PublicKey.Key.Substring(0, 3) +
                 "..." +
                 Web3.Account.PublicKey.Key.Substring(Web3.Account.PublicKey.Key.Length-3);
-            
-            SetGold(gameData.gold);
-            SetGems(gameData.gems);
+
         }
 
         // animated Label counter
