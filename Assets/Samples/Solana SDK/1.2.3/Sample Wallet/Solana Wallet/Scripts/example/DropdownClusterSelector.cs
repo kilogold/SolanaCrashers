@@ -23,12 +23,14 @@ public class DropdownClusterSelector : MonoBehaviour
         {
             (int) RpcCluster.MainNet => "https://rpc.magicblock.app/mainnet/",
             (int) RpcCluster.TestNet => "https://rpc.magicblock.app/testnet/",
+            (int) RpcCluster.LocalNet => "http://127.0.0.1:8899",
             _ => "https://rpc.magicblock.app/devnet/"
         };
         Web3.Instance.webSocketsRpc = value switch
         {
             (int) RpcCluster.MainNet => "wss://rpc.magicblock.app/mainnet/",
             (int) RpcCluster.TestNet => "wss://rpc.magicblock.app/testnet/",
+            (int) RpcCluster.LocalNet => "ws://127.0.0.1:8900",
             _ => "wss://rpc.magicblock.app/devnet/"
         };
         PlayerPrefs.SetInt("rpcCluster", value);
