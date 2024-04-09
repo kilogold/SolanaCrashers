@@ -11,6 +11,7 @@ namespace UIToolkitDemo
 {
     public class FungiblesListener : MonoBehaviour
     {
+        private const string ATA = "8xsmabp5pGT55MsAYMtc333aesDQmL7jG426n99MFjmS";
         public struct Fungibles
         {
             public uint gameCurrency;
@@ -23,7 +24,7 @@ namespace UIToolkitDemo
         {
             SaveManager.GameDataLoaded += SaveManagerOnGameDataLoaded;
             
-            subscription = await Web3.WsRpc.SubscribeTokenAccountAsync("CNkcpWgAzKXQHLHfvpVS5nQFePtHMGnKcikJujB5h2Zu", (state, value) =>
+            subscription = await Web3.WsRpc.SubscribeTokenAccountAsync(ATA, (state, value) =>
             {
                 var amount = (uint)value.Value.Data.Parsed.Info.TokenAmount.AmountUlong;
                 
@@ -34,7 +35,7 @@ namespace UIToolkitDemo
                     gameCurrency = amount,
                     premiumCurrency = 0
                 });
-            }, Commitment.Processed);
+            }, Commitment.Confirmed);
         }
         
         void OnDestroy()
@@ -50,7 +51,7 @@ namespace UIToolkitDemo
         
         private async void SaveManagerOnGameDataLoaded(GameData obj)
         {
-            var output = await Web3.Rpc.GetTokenAccountBalanceAsync("CNkcpWgAzKXQHLHfvpVS5nQFePtHMGnKcikJujB5h2Zu");
+            var output = await Web3.Rpc.GetTokenAccountBalanceAsync(ATA);
             if (!output.WasSuccessful)
             {
                 Debug.LogError(output.Reason);
