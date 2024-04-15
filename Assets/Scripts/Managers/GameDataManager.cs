@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Solana.Unity.SDK;
+using SolCrashersOnChain;
 using UnityEngine.SceneManagement;
 
 namespace UIToolkitDemo
@@ -215,6 +217,7 @@ namespace UIToolkitDemo
             if (shopItem == null)
                 return;
 
+            // TODO: Perform blockchain txn here.
             // invoke transaction succeeded or failed
             if (HasSufficientFunds(shopItem))
             {
@@ -309,10 +312,11 @@ namespace UIToolkitDemo
             // notify the CharScreen to enable or disable the LevelUpButton VFX
             LevelUpButtonEnabled?.Invoke(CanLevelUp(charData));
         }
-        
+
         void OnFundsUpdatedExternally(FungiblesListener.Fungibles obj)
         {
             m_GameData.gold = obj.gameCurrency;
+            m_GameData.gems = obj.premiumCurrency;
             UpdateFunds();
         }
     }
