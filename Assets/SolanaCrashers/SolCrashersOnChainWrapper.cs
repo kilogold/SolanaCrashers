@@ -1,10 +1,15 @@
+using System;
 using System.Text;
+using System.Threading.Tasks;
 using Solana.Unity.Programs.Abstract;
 using Solana.Unity.Wallet;
 using SolCrashersOnChain.Program;
 using SolCrashersOnChain.Errors;
 using Cysharp.Threading.Tasks;
 using Solana.Unity.Programs;
+using Solana.Unity.Rpc.Builders;
+using Solana.Unity.Rpc.Core.Http;
+using Solana.Unity.Rpc.Types;
 using Solana.Unity.SDK;
 using UnityEngine;
 
@@ -60,22 +65,15 @@ namespace SolCrashersOnChain
             _client.SendPrintGemsAsync(amount).Forget();
         }
 
+        public static void PurchaseGoldWithGems(uint gems, uint gold)
+        {
+            _client.SendPurchaseAsync(gems, gold).Forget();
+        }
+
         private async UniTask SendPrintGoldAsync(uint amount)
         {
-            if (!DeriveMintAndTokenAccountsFor("gold", out PublicKey mint, out PublicKey dstAta))
-                return;
+            if (!TryGeneratePrintGoldAccounts(out var accts)) return;
 
-            var accts = new PrintGoldAccounts
-            {
-                DstAta = dstAta,
-                Payer = Web3.Wallet.Account.PublicKey,
-                Mint = mint,
-                AssociatedTokenProgram = AssociatedTokenAccountProgram.ProgramIdKey,
-                SystemProgram = SystemProgram.ProgramIdKey,
-                TokenProgram = TokenProgram.ProgramIdKey,
-                Rent = SysVars.RentKey
-            };
-            
             var result = await SendPrintGoldAsync(
                 accts,
                 amount,
@@ -87,21 +85,10 @@ namespace SolCrashersOnChain
             Debug.Log(result.Result);
             Debug.Log(result.Reason);
         }
-        
+
         private async UniTask SendPrintGemsAsync(uint amount)
         {
-            if (!DeriveMintAndTokenAccountsFor("gems", out PublicKey mint, out PublicKey dstAta))
-                return;
-            
-            var accts = new PrintGemsAccounts()
-            {
-                DstAta = dstAta,
-                Payer = Web3.Wallet.Account.PublicKey,
-                Mint = mint,
-                SystemProgram = SystemProgram.ProgramIdKey,
-                TokenProgram = TokenProgram.ProgramIdKey,
-                Rent = SysVars.RentKey
-            };
+            if (!TryGeneratePrintGemsAccounts(out var accts)) return;
 
             var result = await SendPrintGemsAsync(
                 accts,
@@ -115,5 +102,77 @@ namespace SolCrashersOnChain
             Debug.Log(result.Reason);
         }
 
+        private bool TryGeneratePrintGemsAccounts(out PrintGemsAccounts accts)
+        {
+            if (!DeriveMintAndTokenAccountsFor("gems", out PublicKey mint, out PublicKey dstAta))
+            {
+                accts = null;
+                return false;
+            }
+
+            accts = new PrintGemsAccounts()
+            {
+                DstAta = dstAta,
+                Payer = Web3.Wallet.Account.PublicKey,
+                Mint = mint,
+                SystemProgram = SystemProgram.ProgramIdKey,
+                TokenProgram = TokenProgram.ProgramIdKey,
+                Rent = SysVars.RentKey
+            };
+            return true;
+        }
+
+        private bool TryGeneratePrintGoldAccounts(out PrintGoldAccounts accts)
+        {
+            if (!DeriveMintAndTokenAccountsFor("gold", out PublicKey mint, out PublicKey dstAta))
+            {
+                accts = null;
+                return false;
+            }
+
+            accts = new PrintGoldAccounts
+            {
+                DstAta = dstAta,
+                Payer = Web3.Wallet.Account.PublicKey,
+                Mint = mint,
+                SystemProgram = SystemProgram.ProgramIdKey,
+                TokenProgram = TokenProgram.ProgramIdKey,
+                Rent = SysVars.RentKey
+            };
+            return true;
+        }
+        
+        private async UniTask<RequestResult<string>> SendPurchaseAsync(uint gems, uint gold)
+        {
+            TryGeneratePrintGoldAccounts(out PrintGoldAccounts acctsGold);
+            var ixPrintGold = SolCrashersOnChainProgram.PrintGold(
+                acctsGold, 
+                gold,
+                ProgramIdKey);
+
+
+            DeriveMintAndTokenAccountsFor("gems", out PublicKey mintGems, out PublicKey tokenGems);
+            var acctsGems = new BurnGemsAccounts
+            {
+                DstAta = tokenGems,
+                Payer = Web3.Wallet.Account.PublicKey,
+                Mint = mintGems,
+                SystemProgram = SystemProgram.ProgramIdKey,
+                TokenProgram = TokenProgram.ProgramIdKey,
+                Rent = SysVars.RentKey
+            };
+            var ixBurnGem = SolCrashersOnChainProgram.BurnGems(acctsGems, gems, ProgramIdKey);
+            
+            var blockHash = await Web3.Wallet.ActiveRpcClient.GetLatestBlockHashAsync();
+            
+            var tx = new TransactionBuilder()
+                .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+                .AddInstruction(ixBurnGem)
+                .AddInstruction(ixPrintGold)
+                .SetFeePayer(Web3.Wallet.Account.PublicKey)
+                .Build(Web3.Wallet.Account);
+
+            return await Web3.Wallet.ActiveRpcClient.SendTransactionAsync(tx, false,Commitment.Confirmed);
+        }
     }
 }

@@ -56,6 +56,18 @@ namespace SolCrashersOnChain
             return await SignAndSendTransaction(instr, feePayer, signingCallback);
         }
 
+        public async Task<RequestResult<string>> SendBurnGoldAsync(BurnGoldAccounts accounts, ulong amount, PublicKey feePayer, Func<byte[], PublicKey, byte[]> signingCallback, PublicKey programId)
+        {
+            Solana.Unity.Rpc.Models.TransactionInstruction instr = Program.SolCrashersOnChainProgram.BurnGold(accounts, amount, programId);
+            return await SignAndSendTransaction(instr, feePayer, signingCallback);
+        }
+
+        public async Task<RequestResult<string>> SendBurnGemsAsync(BurnGemsAccounts accounts, ulong amount, PublicKey feePayer, Func<byte[], PublicKey, byte[]> signingCallback, PublicKey programId)
+        {
+            Solana.Unity.Rpc.Models.TransactionInstruction instr = Program.SolCrashersOnChainProgram.BurnGems(accounts, amount, programId);
+            return await SignAndSendTransaction(instr, feePayer, signingCallback);
+        }
+
         protected override Dictionary<uint, ProgramError<SolCrashersOnChainErrorKind>> BuildErrorsDictionary()
         {
             return new Dictionary<uint, ProgramError<SolCrashersOnChainErrorKind>>{{6000U, new ProgramError<SolCrashersOnChainErrorKind>(SolCrashersOnChainErrorKind.CustomError, "Custom error message")}, {6001U, new ProgramError<SolCrashersOnChainErrorKind>(SolCrashersOnChainErrorKind.MathError, "An overflow/underflow occurred during a math operation")}, };
@@ -85,8 +97,6 @@ namespace SolCrashersOnChain
 
             public PublicKey Mint { get; set; }
 
-            public PublicKey AssociatedTokenProgram { get; set; }
-
             public PublicKey SystemProgram { get; set; }
 
             public PublicKey TokenProgram { get; set; }
@@ -95,6 +105,36 @@ namespace SolCrashersOnChain
         }
 
         public class PrintGemsAccounts
+        {
+            public PublicKey DstAta { get; set; }
+
+            public PublicKey Payer { get; set; }
+
+            public PublicKey Mint { get; set; }
+
+            public PublicKey SystemProgram { get; set; }
+
+            public PublicKey TokenProgram { get; set; }
+
+            public PublicKey Rent { get; set; }
+        }
+
+        public class BurnGoldAccounts
+        {
+            public PublicKey DstAta { get; set; }
+
+            public PublicKey Payer { get; set; }
+
+            public PublicKey Mint { get; set; }
+
+            public PublicKey SystemProgram { get; set; }
+
+            public PublicKey TokenProgram { get; set; }
+
+            public PublicKey Rent { get; set; }
+        }
+
+        public class BurnGemsAccounts
         {
             public PublicKey DstAta { get; set; }
 
@@ -127,7 +167,7 @@ namespace SolCrashersOnChain
             public static Solana.Unity.Rpc.Models.TransactionInstruction PrintGold(PrintGoldAccounts accounts, ulong amount, PublicKey programId)
             {
                 List<Solana.Unity.Rpc.Models.AccountMeta> keys = new()
-                {Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.DstAta, false), Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.Payer, true), Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.Mint, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.AssociatedTokenProgram, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.SystemProgram, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.TokenProgram, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.Rent, false)};
+                {Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.DstAta, false), Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.Payer, true), Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.Mint, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.SystemProgram, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.TokenProgram, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.Rent, false)};
                 byte[] _data = new byte[1200];
                 int offset = 0;
                 _data.WriteU64(14611412585011650222UL, offset);
@@ -146,6 +186,36 @@ namespace SolCrashersOnChain
                 byte[] _data = new byte[1200];
                 int offset = 0;
                 _data.WriteU64(3260743366281057532UL, offset);
+                offset += 8;
+                _data.WriteU64(amount, offset);
+                offset += 8;
+                byte[] resultData = new byte[offset];
+                Array.Copy(_data, resultData, offset);
+                return new Solana.Unity.Rpc.Models.TransactionInstruction{Keys = keys, ProgramId = programId.KeyBytes, Data = resultData};
+            }
+
+            public static Solana.Unity.Rpc.Models.TransactionInstruction BurnGold(BurnGoldAccounts accounts, ulong amount, PublicKey programId)
+            {
+                List<Solana.Unity.Rpc.Models.AccountMeta> keys = new()
+                {Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.DstAta, false), Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.Payer, true), Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.Mint, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.SystemProgram, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.TokenProgram, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.Rent, false)};
+                byte[] _data = new byte[1200];
+                int offset = 0;
+                _data.WriteU64(1069112977586845837UL, offset);
+                offset += 8;
+                _data.WriteU64(amount, offset);
+                offset += 8;
+                byte[] resultData = new byte[offset];
+                Array.Copy(_data, resultData, offset);
+                return new Solana.Unity.Rpc.Models.TransactionInstruction{Keys = keys, ProgramId = programId.KeyBytes, Data = resultData};
+            }
+
+            public static Solana.Unity.Rpc.Models.TransactionInstruction BurnGems(BurnGemsAccounts accounts, ulong amount, PublicKey programId)
+            {
+                List<Solana.Unity.Rpc.Models.AccountMeta> keys = new()
+                {Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.DstAta, false), Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.Payer, true), Solana.Unity.Rpc.Models.AccountMeta.Writable(accounts.Mint, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.SystemProgram, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.TokenProgram, false), Solana.Unity.Rpc.Models.AccountMeta.ReadOnly(accounts.Rent, false)};
+                byte[] _data = new byte[1200];
+                int offset = 0;
+                _data.WriteU64(11524826041517211031UL, offset);
                 offset += 8;
                 _data.WriteU64(amount, offset);
                 offset += 8;
