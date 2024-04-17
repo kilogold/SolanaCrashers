@@ -67,13 +67,16 @@ namespace UIToolkitDemo
 
                 TriggerFungiblesUpdate(subscriptionCache);
             };
+            
+            // This may be the bugfix that's missing from the UnitySDK.
+            Application.quitting += () => Web3.WsRpc.DisconnectAsync();
         }
         
         void OnDestroy()
         {
             //Web3.WsRpc.Unsubscribe(subscriptionGems);
             //Web3.WsRpc.Unsubscribe(subscriptionGold);
-            Web3.WsRpc.DisconnectAsync();
+            
         }
 
         void TriggerFungiblesUpdate(Fungibles funge)
